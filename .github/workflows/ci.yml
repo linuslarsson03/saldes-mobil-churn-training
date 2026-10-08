@@ -24,9 +24,10 @@ jobs:
             pyproject.toml
             uv.lock
 
-      - run: uv sync --locked
+      - run: uv sync --locked  --extra dev
 
-      - run: uv run pytest
+      - run: uv run --extra dev pytest
+
        
 
   training:
@@ -36,7 +37,7 @@ jobs:
     steps:
         - uses: actions/checkout@v7
 
-        - uses: python/setup-python@v7
+        - uses: actions/setup-python@v7
           with:
             python-version: "3.11"
 
