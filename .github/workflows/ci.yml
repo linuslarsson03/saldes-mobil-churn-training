@@ -3,24 +3,52 @@ name: CI
 on: push
 
 jobs:
-  allt:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        versions: ["3.11", "3.12", "3.13"]
+      fail-fast: false
+
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.13"
+          python-version: ${{matrix.versions}}
 
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-          cache-dependency-glob: | 
+          cache-dependency-glob: |
             pyproject.toml
             uv.lock
 
       - run: uv sync --locked
-       
-      - run: uv run pytest
 
-      - run: uv run python -m churn.model
+      - run: uv run pytest
+       
+
+  training:
+    needs: test
+
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v7
+
+        - uses: python/setup-python@v7
+          with:
+            python-version: "3.11"
+
+
+        - uses: astral-sh/setup-uv@v6
+          with:
+            enable-cache: true
+            cache-dependency-glob: |
+              pyproject.toml
+              uv.lock
+
+        - run: uv sync --locked
+
+        - run: uv run python -m churn.model
+
