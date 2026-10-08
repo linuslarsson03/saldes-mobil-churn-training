@@ -28,4 +28,3 @@ def test_reproducerbar(resultat):
     _, matvarden = resultat
     _, igen = trana_och_utvardera()
     assert igen == matvarden
-

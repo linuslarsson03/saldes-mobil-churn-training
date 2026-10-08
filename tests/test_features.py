@@ -37,4 +37,4 @@ def test_region_versaler(liten_df):
 
     resultat = skapa_features(df)
 
-    assert resultat["region"].tolist() == ["stockholm", "syd"]
+    assert resultat["region"].tolist() == ["Stockholm", "Syd"]
