@@ -12,8 +12,15 @@ jobs:
         with:
           python-version: "3.13"
 
-      - run: pip install -e .
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: | 
+            pyproject.toml
+            uv.lock
 
-      - run: pytest
+      - run: uv sync --locked
+       
+      - run: uv run pytest
 
-      - run: python -m churn.model
+      - run: uv run python -m churn.model
