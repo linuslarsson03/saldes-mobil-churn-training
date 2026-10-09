@@ -28,3 +28,9 @@ def test_reproducerbar(resultat):
     _, matvarden = resultat
     _, igen = trana_och_utvardera()
     assert igen == matvarden
+
+
+def test_model_roc_auc(resultat):
+    _, matvarden = resultat
+
+    assert matvarden["roc_auc"] >= 0.70
