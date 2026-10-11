@@ -84,7 +84,11 @@ jobs:
           name: model-${{github.sha}}
           path: outputs/
 
-      - run: uv run python -m churn.evaluate
+      - name: Evaluate model
+        env:
+          MIN_ROC_AUC: "0.90"
+        run: uv run python -m churn.evaluate
+
 
       - name: Show results
         if: always()
