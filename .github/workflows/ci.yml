@@ -85,4 +85,7 @@ jobs:
 
       - name: Show results
         if: always()
-        run: cat outputs/matvarden.json >> "$GITHUB_STEP=_SUMMARY"
+        run: |
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat outputs/matvarden.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
