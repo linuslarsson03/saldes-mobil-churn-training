@@ -2,8 +2,23 @@ name: CI
 
 on:
   push:
+    paths:
+      - "src/**"
+      - "data/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/**"      
+
   pull_request:
     branches: [main]
+    paths:
+      - "src/**"
+      - "data/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/**"
 
 jobs:
   test:
@@ -84,7 +99,9 @@ jobs:
           name: model-${{github.sha}}
           path: outputs/
 
+
       - run: uv run python -m churn.evaluate
+
 
       - name: Show results
         if: always()
