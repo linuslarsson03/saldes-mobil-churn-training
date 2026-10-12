@@ -20,6 +20,10 @@ on:
       - "uv.lock"
       - ".github/workflows/**"
 
+concurrency:
+  group: ${{github.workflow}}-${{github.action_ref}}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
