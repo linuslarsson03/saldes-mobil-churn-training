@@ -32,125 +32,39 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         versions: ["3.11", "3.12", "3.13"]
       fail-fast: false
 
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-python@v7
-        with:
-          python-version: ${{matrix.versions}}
-
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          cache-dependency-glob: |
-            pyproject.toml
-            uv.lock
-
-      - run: uv sync --locked  --extra dev
-
-      - run: uv run --extra dev pytest
-
-       
+    uses: ./.github/workflows/setup.yml
+    with:
+      python-version: ${{ matrix.versions }}
+      command: "uv run --extra dev pytest"
+      job-type: test
 
   training:
     needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
+    uses: ./.github/workflows/setup.yml
+    with:
+      python-version: "3.11"
+      command: "uv run python -m churn.model"
+      job-type: training
 
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.11"
-
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          cache-dependency-glob: |
-            pyproject.toml
-            uv.lock
-
-      - run: uv sync --locked
-
-      - run: uv run python -m churn.model
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: model-${{ github.sha }}
-          path: outputs/
-        
   evaluate:
     needs: training
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.11"
-
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          cache-dependency-glob: |
-            pyproject.toml
-            uv.lock
-
-      - run: uv sync --locked
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: model-${{github.sha}}
-          path: outputs/
+    uses: ./.github/workflows/setup.yml
+    with:
+      python-version: "3.11"
+      command: "uv run python -m churn.evaluate"
+      job-type: evaluate
 
 
-      - run: uv run python -m churn.evaluate
-
-
-      - name: Show results
-        if: always()
-        run: |
-          echo '```json' >> "$GITHUB_STEP_SUMMARY"
-          cat outputs/matvarden.json >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-  
   call-list:
     needs: evaluate
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.11"
-
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          cache-dependency-glob: |
-            pyproject.toml
-            uv.lock
-
-      - run: uv sync --locked
-
-      - uses: actions/download-artifact@v4
-        with: 
-          name: model-${{github.sha}}
-          path: outputs/
-
-      - run: uv run python -m churn.score
-
-      - uses: actions/upload-artifact@v4
-        with: 
-          name: call-list
-          path: outputs/ringlista.csv
-          if-no-files-found: error
-          
+    uses: ./.github/workflows/setup.yml
+    with:
+      python-version: "3.11"
+      command: "uv run python -m churn.score"
+      job-type: call-list
