@@ -12,6 +12,7 @@ import joblib
 
 from churn.data import MAL, dela_upp, las_data, skapa_features
 
+# Testar att CI startar vid ändring i src/
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
