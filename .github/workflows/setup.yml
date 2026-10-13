@@ -1,0 +1,70 @@
+name: Reusable Job
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: "3.11"
+      command:
+        type: string
+        required: true
+      job-type:
+        type: string
+        required: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+
+      - name: Install dependencies
+        env:
+          JOB_TYPE: ${{ inputs.job-type }}
+        run: |
+          if [ "$JOB_TYPE" = "test" ]; then
+            uv sync --locked --extra dev
+          else
+            uv sync --locked
+          fi
+
+      - name: Download model
+        if: inputs.job-type == 'evaluate' || inputs.job-type == 'call-list'
+        uses: actions/download-artifact@v4
+        with:
+          name: model-${{ github.sha }}
+          path: outputs/
+
+      - name: Run command
+        env:
+          COMMAND: ${{ inputs.command }}
+        run: bash -c "$COMMAND"
+
+      - name: Upload model
+        if: inputs.job-type == 'training'
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-${{ github.sha }}
+          path: outputs/
+          if-no-files-found: error
+
+      - name: Upload call list
+        if: inputs.job-type == 'call-list'
+        uses: actions/upload-artifact@v4
+        with:
+          name: call-list
+          path: outputs/ringlista.csv
+          if-no-files-found: error
