@@ -8,7 +8,8 @@ on:
       - "tests/**"
       - "pyproject.toml"
       - "uv.lock"
-      - ".github/workflows/**"      
+      - ".github/workflows/**"   
+      - "kontroller/**"   
 
   pull_request:
     branches: [main]
@@ -19,12 +20,22 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/**"
+      - "kontroller/**"
 
   schedule:
   - cron: "0 6 * * 1"
     timezone: "Europe/Stockholm"
 
   workflow_dispatch:
+    inputs:
+      csv_fil:
+        description: "Välj CSV-fil att kontrollera"
+        required: true
+        type: choice
+        default: "data/kundbas.csv"
+        options:
+          - "data/kundbas.csv"
+          - "data/kundbas_ny_leverans.csv"
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -43,8 +54,15 @@ jobs:
       command: "uv run --extra dev pytest"
       job-type: test
 
+  data-validation:
+    uses: ./.github/workflows/setup.yml
+    with:
+      python-version: "3.11"
+      command: "uv run python kontroller/schema.py ${{ inputs.csv_fil || 'data/kundbas.csv' }}"
+      job-type: data-validation
+
   training:
-    needs: test
+    needs: [test, data-validation]
     uses: ./.github/workflows/setup.yml
     with:
       python-version: "3.11"
